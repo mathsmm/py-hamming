@@ -3,10 +3,22 @@ Plano:
 Polis e Lucas:
     Conversão de arquivo
         1) Conversão a serviço do Sender:
-            Arquivo original para hexadecimal (.txt)
-                Lógica para separar os números hexadecimais dos "0x"
-            Depois, converter para um arquivo binário (.txt)
-                Lógica de conversão de hexadecimal para binário
+            Método 1:
+                Arquivo original para hexadecimal (.txt)
+                    Lógica para separar os números hexadecimais dos "0x"
+                Depois, converter para um arquivo binário (.txt)
+                    Lógica de conversão de hexadecimal para binário
+            Método 2:
+                *Ver material da última aula do Rodacki!
+
+                variável para armazenar o arquivo original
+                método open do python (open(arquivo))
+                transformar o arquivo para string (str(arquivo))
+                bytearray para transformar o arquivo num array de bytes (utf8)
+                laço para tirar o "0b" dos elementos do bytearray
+                passar o array para um arquivo .txt
+
+
 
         2) Conversão a serviço do Receiver:
             Arquivo binário para hexadecimal
