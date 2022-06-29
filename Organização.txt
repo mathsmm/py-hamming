@@ -1,0 +1,84 @@
+Plano:
+
+Polis e Lucas:
+    Conversão de arquivo
+        1) Conversão a serviço do Sender:
+            Arquivo original para hexadecimal (.txt)
+                Lógica para separar os números hexadecimais dos "0x"
+            Depois, converter para um arquivo binário (.txt)
+                Lógica de conversão de hexadecimal para binário
+
+        2) Conversão a serviço do Receiver:
+            Arquivo binário para hexadecimal
+                Lógica de conversão de binário para hexadecimal
+            Depois, converter para o arquivo original (.jpg, .docx)
+                Lógica para adicionar os "0x" aos números hexadecimais
+
+    Gerador de ruído
+        Opções de geração de ruído:
+            Ruídos de bits longes (em diferentes quadros)
+            Ruídos aleatórios
+            Ruídos em rajada
+        Opção para delimitar a quantidade de bits ruidosos!
+        Guardar quais foram os bits embaralhados
+            Colocar os índices deles num array
+        Vai precisar da biblioteca random!
+
+José e Matheus:
+    Sender
+        Codificação por Hamming
+        15,4 (11 bits de dado, 4 bits de paridade de Hamming e 1 bit de paridade especial (Hamming estendido))
+        A quantidade de bits, em relação à de paridade, é uma potência de 2
+
+        Quadro 15,4 (bits)
+            esp. par. par. data
+            par. data data data
+            par. data data data
+            data data data data
+
+        Se tiver 1 erro:
+            Paridade especial somente detecta
+            Paridade de Hamming detecta e também corrige
+
+        Se tiver 2 erros:
+            Paridade especial não detecta
+            Paridade de Hamming somente detecta
+
+        Quantidade par de erros:
+            O bit especial NÃO detecta!
+
+        Quantidade ímpar de erros:
+            O bit especial detecta!
+
+        Posições:
+            0000 0001 0010 0011
+            0100 0101 0110 0111
+            1000 1001 1010 1011
+            1100 1101 1110 1111
+
+            0    1    2    3
+            4    5    6    7
+            8    9    10   11
+            12   13   14   15
+
+    Receiver
+        Fazer a verificação de cada quadro de Hamming
+        Detectar se tem erro
+        Se possível, corrigir o erro
+        Se não for possível, marcar bloco como irrecuperável
+        Informações:
+            Quantidade de quadros sem ruído
+            Quantidade de quadros ruidosos corrigidos
+            Quantidade de quadros ruidosos irrecuperáveis
+        Utiliza XOR
+            T or T = T
+            F or F = F
+            T or F = T
+            OU normal
+            Exemplo: Quero ganhar uma casa ou um carro ou os dois
+
+            T xor T = F
+            F xor F = F
+            T xor F = T
+            OU exclusivo (exclui se os dois forem verdadeiros)
+            Exemplo Só posso comprar uma casa ou um carro. Não posso comprar os dois
