@@ -67,6 +67,16 @@ José e Matheus:
             8    9    10   11
             12   13   14   15
 
+            Q1: Colunas 2 e 4
+            Q2: Colunas 3 e 4
+            Q3: Linhas 2 e 4
+            Q4: Linhas 3 e 4
+
+            Para ser resistente a rajadas de ruídos:
+                Embaralhar os quadros de Hamming, de modo que
+                se ocorrer rajada, os erros ficarão espalhados
+                em diferentes quadros
+
     Receiver
         Fazer a verificação de cada quadro de Hamming
         Detectar se tem erro
@@ -76,15 +86,16 @@ José e Matheus:
             Quantidade de quadros sem ruído
             Quantidade de quadros ruidosos corrigidos
             Quantidade de quadros ruidosos irrecuperáveis
-        Utiliza XOR
-            T or T = T
-            F or F = F
-            T or F = T
-            OU normal
-            Exemplo: Quero ganhar uma casa ou um carro ou os dois
 
-            T xor T = F
-            F xor F = F
-            T xor F = T
-            OU exclusivo (exclui se os dois forem verdadeiros)
-            Exemplo Só posso comprar uma casa ou um carro. Não posso comprar os dois
+        Supondo que o bit na posição 7 (0111) esteja com erro:
+                As verificações que detectam o erro gerarão um padrão
+                igual à posição do bit com erro.
+                Ex: Q1 Detecta!     --> 1
+                    Q2 Detecta!     --> 1
+                    Q3 Detecta!     --> 1
+                    Q4 Não detecta! --> 0
+                    Que é exatamente a posição do bit com erro! (0111)
+
+        Ao armazenar a posição de todos os bits e aplicar XOR nelas,
+        o resultado será a posição do bit defeituoso! (Considerando
+        que tenha somente um bit com ruído)
