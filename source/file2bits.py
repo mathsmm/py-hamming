@@ -1,19 +1,24 @@
 def toBits(arquivo):
+    listaDeBits = []
+    bits = bytearray()
     with open(arquivo,'rb') as file:
-        hexadecimais = str(file.read())
-        bits = ''
-        for x in hexadecimais:
-            bits += format(ord(x),'b')
-            bits += ' '
-        return bits
+        while True:
+            dado = file.read(1)
+            if str(dado) == "b''":
+                break
+            bit = format(ord(dado),'b')
+            if len(bit) != 8:
+                while len(bit) != 8:
+                    bit = '0' + bit
+            listaDeBits.append(bit)
+            bits.append(int(bit,2))
+    return listaDeBits
 
-def toHexadecimal(bits):
-    hexadecimal = ''
-    for bit in bits.split(' '):
-        try:
-            hexadecimal += chr(int(bit,2))
-        except: pass
-    return hexadecimal
+def toFile(listaDeBits):
+    nBits = bytearray()
+    for i in listaDeBits:
+        nBits.append(int(i,2))
+    with open('novaImagem.jpg','wb') as file:
+        file.write(nBits)
 
-bits = toBits('arquivo.jpg')
-print(toHexadecimal(bits))
+toFile(toBits('imagem.jpg'))

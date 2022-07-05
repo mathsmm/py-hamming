@@ -1,134 +1,113 @@
 import random
 
 
-# Comentários do Matheus com "#"
+# Se o código adicionar ou tirar bits do arquivo original, pode corrompê-lo!
 
-
-# Verificar solução matemática para os bits de checagem serem 
-# aplicados em qualquer tamanho de quadro!
-# Isto vale para a criação e verificação de quadros!
-
-# checks = {
-#         (todos (range(tamanho_quadro)))
-#         0:[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],
-
-#         (começa do 1, +4 quatro vezes, -4 a partir do 15, quatro vezes)
-#         1:[1,5,9,13,3,7,11,15],
-
-#         (começa do 2, + 4 quatro vezes, -4 a partir do 15, quatro vezes)
-#         2:[2,6,10,14,3,7,11,15],
-
-#         (começa do 4, +1 quatro vezes, -1 a partir do 15, quatro vezes)
-#         4:[4,5,6,7,12,13,14,15],
-
-#         (começa do 8, +1 oito vezes)
-#         8:[8,9,10,11,12,13,14,15]
-#     }    
-
-'''     Essa função pega uma string de bits e verifica se a soma dos bits é par ou impar.
-        Para isso ela recebe um lista(conjunto) com posicoes e uma string(bits) com os bits. Entao ela usa as
-    posicoes da lista para pegar o numero na string para fazer o calculo
-        Retorna True se for par e False se for impar '''
-    # Parâmetro "conjunto" eu acho que ficaria melhor com outro nome.
-    # Que tal "posicoes_checagem"?
-def paridade(conjunto, bits):
+def paridade(posicoes_checagem, sequencia_bits):
+    """
+    Retorna True caso as posições específicas de uma sequência de bits for par. Caso contrário, retorna False
+    """
     soma = 0
-    # Não seria melhor "posicao" ao invés de "bit"?
-    for bit in conjunto:
-        soma += int(bits[bit])
+    i = 0
+    while i < posicoes_checagem:
+        soma += int(sequencia_bits[i])
+        i += 1
+
     if soma % 2 == 0:
         return True
-    else:
-        return False
-    
+    return False
 
-
-
-
-'''   Essa função recebe uma string(bits) com os 11 bits para aplicar hamming.
-      Coloca as paridades nas posicoes que devem ficar e faz o calculo de paridade para escolher
-    o numero da paridade.
-      A função retorna uma string com 16 bits que é o quadro final com hamming 15 - 11 '''
-def criar_quadro(bits):
-    hamming = ''
-    # Posições dos bits fixas para 11, 4. Verificar solução matemática
-    # para quadros com 32, 64, 128 e 256 bits.
-    checks = {
-        0:[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14],
-        1:[1,4,8,0,3,6,10],
-        2:[2,5,9,0,3,6,10],
-        4:[1,2,3,7,8,9,10],
-        8:[4,5,6,7,8,9,10]
+def criar_quadro_16bits(bits_dados):
+    """
+    Recebe 11 bits de dados, verifica paridades e retorna uma string que representa um quadro de hamming estendido com tamanho de 16 bits.
+    """
+    result = ''
+    posicoes_checagem = {
+        0:[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], 
+        1:[1, 4, 8, 0, 3, 6, 10], 
+        2:[2, 5, 9, 0, 3, 6, 10], 
+        4:[1, 2, 3, 7, 8, 9, 10], 
+        8:[4, 5, 6, 7, 8, 9, 10]
     }
-    n = 0
-    # Quando a variável "bit" está com valor 0, não
-    # ocorre qualquer ação com ela! range deve ser:
-    # range(1, 16)
-    for bit in range(16):
-        if bit in [1,2,4,8]:
-            if paridade(checks[bit],bits):
-                hamming += '0'
+    i = 1
+    j = 0
+    while i < 16:
+        if i in [1,2,4,8]:
+            if paridade(posicoes_checagem[i], bits_dados):
+                result += '0'
             else:
-                hamming += '1'
-        elif bit != 0:
-            hamming += bits[n]
-            n += 1
-    if paridade(checks[0],hamming):
-        hamming = '0' + hamming 
+                result += '1'
+        else:
+            result += bits_dados[j]
+            j += 1
+
+    if paridade(posicoes_checagem[0], result):
+        result = '0' + result 
     else:
-        hamming = '1' + hamming
-    return hamming
+        result = '1' + result
 
+    return result
 
+def testar_quadro_hamming(quadro_hamming: str):
+    """
+    Recebe uma string que representa um quadro de hamming estendido, com 16 bits de tamanho, e:
 
-
-
-
-'''   Essa função recebe uma string(bits) com 16 bits contendo hamming e verifica se a algum erro.
-      Ela retorna a posicao do bit com erro se houver 1 erro
-      Ela retorna -2 se tiver mais de um erro
-      Ela retorna -1 se não houver erro '''
-def testar_quadro(bits):
-    erro = 0
-    checks = {
-        0:[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],
-        1:[1,5,9,13,3,7,11,15],
-        2:[2,6,10,14,3,7,11,15],
-        4:[4,5,6,7,12,13,14,15],
-        8:[8,9,10,11,12,13,14,15]
+    Retorna a posição do bit incorreto se houver somente 1 bit errado;\n
+    Retorna -2 se tiver mais de um bit errado;\n
+    Retorna -1 se não houver erro.
+    """
+    posicoes_checagem = {
+        0: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], 
+        1: [1, 5, 9,  13, 3,  7,  11, 15], 
+        2: [2, 6, 10, 14, 3,  7,  11, 15], 
+        4: [4, 5, 6,  7,  12, 13, 14, 15], 
+        8: [8, 9, 10, 11, 12, 13, 14, 15]
     }
-    for grupo in checks:
-        if grupo == 0: continue
-        if not paridade(checks[grupo],bits):
-            erro += grupo
-    if erro == 0:
+
+    posicao_erro = 0
+    for chave in posicoes_checagem:
+        if not paridade(posicoes_checagem[chave], quadro_hamming):
+            posicao_erro += chave
+
+    paridade_bit_especial = paridade(posicoes_checagem[0], quadro_hamming)
+
+    if   posicao_erro == 0 and paridade_bit_especial:
         return -1
-    elif erro != 0 and paridade(checks[0],bits):
+    elif posicao_erro != 0 and paridade_bit_especial:
+        return -2
+    elif posicao_erro == 0 and not paridade_bit_especial:
         return -2
     else:
-        return erro
+        return posicao_erro
+
+def cortar_string_de_bits_original(string: str):
+    resto = len(string) % 11
+    if resto == 0:
+        return string
+    return string[:-resto], string[-resto:]
 
 
 
 
 
-
+# DEVE SER APLICADO HAMMING LINHA POR LINHA A PARTIR DO ARQUIVO DE TEXTO!!
+# EDER VAI USAR ARQUIVOS MUITO GRANDES PARA SEREM ARMAZENADOS INTEIROS DENTRO DE UMA STRING
 '''    Esta função recebe uma string(string) como qualquer quantidade de bits.
        Caso a string não tenha um tamanho divisivel por 11 são adicionados zeros ao fim da string
        Ela divide a string em pedaços de 11 bits para fazer a criação dos quadros. Entao ela cria os
     quadros e após isso ela adiciona o quadro criado a string codificada.
         A função retorna a string codificada com hamming aplicado '''
 def codificar_string(string):
-    codificada = ''
-    for bit in range( 11 - ( ( len(string) ) % 11) ):
-        string = '0' + string
+    str_codificada = ''
+    # for bit in range( 11 - ( ( len(string) ) % 11) ):
+        # string = '0' + string
     quadro = ''
     for index,bit in enumerate(string):
         quadro += bit
         if len(quadro) == 11:
-            codificada += criar_quadro(quadro)
+            str_codificada += criar_quadro_16bits(quadro)
             quadro = ''
-    return codificada
+    return str_codificada
 
 
 
