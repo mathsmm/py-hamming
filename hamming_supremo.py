@@ -5,9 +5,6 @@ import os
 
 '''     Embaralhar hamming'''
 def embaralhar(bits):
-    """
-    
-    """
     resultado = ''
     qtd_quadros = len(bits) // 16
     print('quantidade:', qtd_quadros)
@@ -17,35 +14,6 @@ def embaralhar(bits):
     return resultado
 
 
-
-
-def toBits(arquivo, qtd_bytes_por_vez=121):
-    '''Converte arquivo para lista de bits e lista de bits para arquivos'''
-    str_bytes = ''
-    with open('arquivoBits.txt','w') as nArquivo:
-        with open(arquivo,'rb') as file:
-            while True:
-                dado = file.read(1)
-                if str(dado) == "b''":
-                    break
-                # ord do caractere, converte para binário
-                byte = format(ord(dado),'b')
-                # adiciona zeros no começo para ficar com um tamanho de 8 bits
-                byte = ('0' * ( 8 - len(byte))) + byte
-                str_bytes += byte
-                if len(str_bytes) == qtd_bytes_por_vez * 8:
-                    nArquivo.write(str_bytes)
-                    str_bytes = ''
-            nArquivo.write(str_bytes)
-
-
-
-def toFile(listaDeBits, name='newFile'):
-    nBits = bytearray()
-    for i in listaDeBits:
-        nBits.append(int(i,2))
-    with open(name,'wb') as file:
-        file.write(nBits)
 
 
 
@@ -137,8 +105,6 @@ def testar_quadro(bits):
         A função retorna a string codificada com hamming aplicado '''
 def codificar_string(string):
     codificada = ''
-    # for bit in range( 11 - ( ( len(string) ) % 11) ):
-    #     string = '0' + string
     quadro = ''
     for index, bit in enumerate(string):
         quadro += bit
@@ -146,6 +112,7 @@ def codificar_string(string):
             codificada += criar_quadro(quadro)
             quadro = ''
     return codificada
+
 
 
 
@@ -170,9 +137,7 @@ def decodificar_string(string):
             elif teste == -2:
                 corrompido = True
                 erros += 2
-                #print(f'quadro {nQuadro} esta corrompido')
             else:
-                #print(f'Erro corrigido no quadro {nQuadro}')
                 erros += 1
                 if quadro[teste] == '0':
                     quadro = quadro[:teste] + '1' + quadro[teste+1:]
@@ -184,121 +149,73 @@ def decodificar_string(string):
                     limpo += cada
             decodificada += limpo
             quadro = ''
-    # print('erros:',erros)
-    # if corrompido:
-    #     print('Arquivo corrompido. Impossivel concertar')
-    # else:
-    #     print('Arquivo concertado com sucesso')
     return decodificada
 
 
 
 
 
-
-
-
-        
-
-
-#TESTES
-testes = [1,2,4]
-
-toBits('image.jpg', 128)
-
-#codificar arquivo
-if 1 in testes:
-    toBits('image.jpg')
-    praCodificar = ''
-    string = ''
-    with open('code.txt','w') as file:
-        with open('arquivoBits.txt','r') as bits:
+'''    Essa funcao recebe o nome do arquivo para codificar o nome do arquivo que sera o resultado da codificaçao'''
+def codificarArquivo(arquivo,novoArquivo):
+    with open(novoArquivo,'w') as coded:
+        str_bytes = ''
+        with open(arquivo,'rb') as file:
             while True:
-                dado = bits.read(1)
-                if dado == '':
+                dado = file.read(1)
+                if str(dado) == "b''":
                     break
-                string += dado
-                if len(string) == 11:
-                    file.write(codificar_string(string))
-                    string = ''
-            #stringFinal = embaralhar(stringFinal)
-            file.write(codificar_string(string))
+                byte = format(ord(dado),'b')
+                byte = ('0' * ( 8 - len(byte))) + byte
+                str_bytes += byte
+                if len(str_bytes) >= 11:
+                    coded.write(codificar_string(str_bytes[:11]))
+                    str_bytes = str_bytes[11:]
+            coded.write(str_bytes)
 
-#decodificar arquivo
-if 2 in testes:
-    with open('decode.txt','w') as arquivo:
+
+
+
+
+'''     Essa função recebe o nome do arquivo para decodificar e retorna o nome do arquivo final que será recriado apos a codificaçao'''
+def decodificarArquivo(arquivo,novoArquivo):
+    bytesArray = bytearray()
+    byte = ''
+    with open(novoArquivo,'wb') as imagem:
         string = ''
-        with open('code.txt','r') as file:
+        with open(arquivo,'r') as file:
             while True:
                 dado = file.read(1)
                 if dado == '':
                     break
                 string += dado
                 if len(string) == 16:
-                    arquivo.write(decodificar_string(string))
+                    byte += decodificar_string(string)
                     string = ''
-            arquivo.write(string)
-'''
-            decoded = file.read()
-            #decoded = embaralhar(decoded)
-            decoded = decodificar_string(decoded)[5:]
-            with open('original.txt','r') as doc:
-                original = doc.read()
-                print(f'original {len(original)}:',original[:100])
-                print(f'decoded  {len(decoded)}:',decoded[:100])
-                if original == decoded:
-                    print('funcionando...')
-                else:
-                    print('quebrado...')
-                lista = []
-                string = ''
-                for i in decoded:
-                    string += str(i)
-                    if len(string) == 8:
-                        lista.append(string)
-                        string = ''
-                toFile(lista,name='novaImagem.jpg')
-'''
-#testar embaralhamento
-if 3 in testes:
-    s = ''
-    l = 'abcdefghijklmnop'
-    for y in range(10):
-        for x in l:
-            for i in range(16):
-                s += x
-    print('original:',s)
-    emb = embaralhar(s)
-    print('emb:',emb)
-    print('desem:',embaralhar(emb))
+                if len(byte) >= 8:
+                    bytesArray.append(int(byte[:8],2))
+                    byte = byte[8:]
+                if len(bytesArray) >= 100:
+                    imagem.write(bytesArray)
+                    bytesArray = bytearray()
+            if len(bytesArray) > 0:
+                imagem.write(bytesArray)
 
 
 
-if 4 in testes:
-    string = ''
-    lista = []
-    with open('novaImagem.jpg','wb') as imagem:
-        with open('decode.txt','r') as file:
-            while True:
-                dado = file.read(1)
-                if dado == '':
-                    break
-                string += dado
-                if len(string) == 8:
-                    lista.append(string)
-                    string = ''
-                if len(lista) == 10:
-                    nBits = bytearray()
-                    for i in lista:
-                        nBits.append(int(i,2))
-                    imagem.write(nBits)
-                    lista = []
-            if lista != []:
-                nBits = bytearray()
-                for i in lista:
-                    nBits.append(int(i,2))
-                imagem.write(nBits)
 
 
-def main():
-    qtd_quadros_por_vez = 64
+
+
+
+#TESTES                
+testes = [1,2]
+
+#codificar arquivo e salvar codificaçao em outro arquivo
+if 1 in testes:
+    codificarArquivo(arquivo='image.jpg',novoArquivo='code.txt')
+
+
+#decodificar arquivo codificado e remontar o arquivo original
+if 2 in testes:
+    decodificarArquivo(arquivo='code.txt',novoArquivo='novaImagem.jpg')
+
