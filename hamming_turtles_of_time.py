@@ -4,14 +4,20 @@ import os
 def criar_cabecalho(arquivo):
     cabecalho = ''
     extensao = arquivo.split('.')[1]
-    
+
+    t = 0
     with open(arquivo,'rb') as file:
-        t = len(file.read()) * 8
-        resto = t % 11
-        final = (t - resto) + ( 5 * (t // 11)) + resto
-        extensao += '-'
-        extensao += str(final)
-        extensao += '-'
+        while True:
+            dado = file.read(1)
+            if str(dado) == "b''":
+                break
+            t += 1
+    t *= 8
+    resto = t % 11
+    final = (t - resto) + ( 5 * (t // 11)) + resto
+    extensao += '-'
+    extensao += str(final)
+    extensao += '-'
     
     bitsCabecalho = ''
     for i in extensao:
@@ -77,7 +83,9 @@ def lerCabecalho(t):
                         dados += chr(int(bits,2))
                         bits = ''
                 data = ''
-                cabecalhos.append(dados[:len(dados) - len(chave)])
+                final = dados[:len(dados) - len(chave)]
+                if final != '':
+                    cabecalhos.append(final)
             else:
                 on = True
     certo = ''
@@ -228,13 +236,13 @@ def codificarArquivo(arquivo,novoArquivo):
 
 
 '''     Essa função recebe o nome do arquivo para decodificar e retorna o nome do arquivo final que será recriado apos a codificaçao'''
-def decodificarArquivo(arquivo,nome = 'arquivoDecodificado.'):
+def decodificarArquivo(arquivo,nome = 'arquivoDecodificado'):
     inicioArquivo = 0
     cabecalho = ''
     with open(arquivo,'r') as file:
         while True:
             cabecalho += file.read(1)
-            if len(cabecalho) > 1000:
+            if len(cabecalho) > 3000:
                 break
     
     dadosCabecalho = lerCabecalho(cabecalho).split('-')
@@ -256,7 +264,7 @@ def decodificarArquivo(arquivo,nome = 'arquivoDecodificado.'):
     bytesArray = bytearray()
     byte = ''
     r = False
-    with open( nome + extensao,'wb') as imagem:
+    with open( nome + '.' + extensao,'wb') as imagem:
         string = ''
         with open(arquivo,'r') as file:
             while True:
@@ -293,7 +301,7 @@ def decodificarArquivo(arquivo,nome = 'arquivoDecodificado.'):
 #TESTES            
 
 #codificar arquivo e salvar codificaçao em outro arquivo
-if 0:
+if 1:
     codificarArquivo(arquivo='image.jpg',novoArquivo='encoded')
 
 
