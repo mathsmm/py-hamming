@@ -102,7 +102,7 @@ def lerCabecalho(t):
 
 
 '''     Essa função recebe o nome do arquivo para decodificar e retorna o nome do arquivo final que será recriado apos a codificaçao'''
-def decodificarArquivo(arquivo, novo_arquivo='arquivoDecodificado'):
+def decodificarArquivo(arquivo, novo_arquivo='original'):
     inicioArquivo = 0
     cabecalho = ''
     with open(arquivo,'r') as file:
@@ -168,7 +168,13 @@ def decodificarArquivo(arquivo, novo_arquivo='arquivoDecodificado'):
 
 
 def main():
-    decodificarArquivo(arquivo='files\\encoded.txt', novo_arquivo='files\\arquivo_original')
+    # Marca o tempo de execução
+    import time
+    start_time = time.time()
+
+    decodificarArquivo(arquivo='files\\encoded.txt', novo_arquivo='files\\original')
+
+    print("--- Tempo de execução: %s segundos ---" % (time.time() - start_time))
 
 if __name__ == "__main__":
     main()

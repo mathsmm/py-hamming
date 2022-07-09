@@ -111,7 +111,14 @@ def codificarArquivo(arquivo, novo_arquivo):
 
 
 def main():
-    codificarArquivo(arquivo='files\\image.jpg', novo_arquivo='files\\encoded.txt')
+    # Marca o tempo de execução
+    import time
+    start_time = time.time()
+
+    codificarArquivo(arquivo='files\\image1.jpg', novo_arquivo='files\\encoded.txt')
+
+    print("--- Tempo de execução: %s segundos ---" % (time.time() - start_time))
+
 
 if __name__ == "__main__":
     main()
