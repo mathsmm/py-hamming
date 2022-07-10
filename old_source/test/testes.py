@@ -1,3 +1,6 @@
+from encodings import utf_8
+
+
 def paridade(conjunto, bits):
     """
     
@@ -199,3 +202,14 @@ def decodificar_quadro(quadro):
             bit_dados.append(quadro_bit_flipado[i])
 
         return ''.join(bit_dados)
+
+list = [1, 1, 1, 1, 0, 1]
+str = '111101'
+print(bytearray(list))
+print(bytearray(str, 'utf-8'))
+
+with open('teste1.txt', 'wb') as arq:
+    arq.write(bytearray(list))
+
+with open('teste2.txt', 'wb') as arq:
+    arq.write(bytearray(str, 'utf-8'))

@@ -112,13 +112,37 @@ def codificarArquivo(caminho_arquivo_original: str, caminho_arquivo_codificado='
                     str_bits = str_bits[11:]
             arq_codificado.write(str_bits)
 
+# def codificarArquivo(caminho_arquivo_original: str, caminho_arquivo_codificado='codificado.txt'):
+#     """
+#     Converte um arquivo qualquer em um arquivo de texto em binário e aplica codificação de Hamming. O arquivo de texto gerado é cerca de 12 vezes maior que o arquivo original
+#     """
+#     with open(caminho_arquivo_codificado, 'wb') as arq_codificado:
+#         byte_array = bytearray(criar_cabecalho(caminho_arquivo_original), 'utf-8')
+#         arq_codificado.write(byte_array)
+#         str_bits = ''
+#         with open(caminho_arquivo_original, 'rb') as arq_original:
+#             while True:
+#                 dado = arq_original.read(1)
+#                 if str(dado) == "b''":
+#                     break
+#                 byte = format(ord(dado), 'b')
+#                 # byte = ('0' * ( 8 - len(byte))) + byte
+#                 byte = byte.zfill(8)
+#                 str_bits += byte
+#                 if len(str_bits) >= 11:
+#                     byte_array = bytearray(criar_quadro(str_bits[:11]), 'utf-8')
+#                     arq_codificado.write(byte_array)
+#                     str_bits = str_bits[11:]
+#             byte_array = bytearray(str_bits, 'utf-8')
+#             arq_codificado.write(byte_array)
+
 
 def main():
     # Marca o tempo de execução
     import time
     start_time = time.time()
 
-    codificarArquivo(caminho_arquivo_original='files\\image.jpg', caminho_arquivo_codificado='files\\codificado.txt')
+    codificarArquivo(caminho_arquivo_original='files\\image1.jpg', caminho_arquivo_codificado='files\\codificado.txt')
 
     print("--- Sender --> Tempo de execução: %s segundos ---" % (time.time() - start_time))
 
