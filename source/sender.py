@@ -42,24 +42,25 @@ def criar_cabecalho(arquivo):
     extensao = arquivo.split('.')[1]
 
     t = 0
-    with open(arquivo,'rb') as file:
+    with open(arquivo, 'rb') as file:
         while True:
             dado = file.read(1)
             if str(dado) == "b''":
                 break
             t += 1
+
     t *= 8
     resto = t % 11
     final = (t - resto) + ( 5 * (t // 11)) + resto
     extensao += '-'
     extensao += str(final)
     extensao += '-'
-    
-    bitsCabecalho = ''
+
+    bits_cabecalho = ''
     for i in extensao:
         b = format(ord(i),'b')
         b = '0' * ( 8 - len(b)) + b
-        bitsCabecalho += b
+        bits_cabecalho += b
 
     chave = 'bcc2022'
     stringC = ''
@@ -69,35 +70,37 @@ def criar_cabecalho(arquivo):
         stringC += b
 
 
-    repetirCabecalho = 10
-    tamanhoCabecalho = (len(stringC) * (repetirCabecalho + 2))
-    tamanhoCabecalho += len(bitsCabecalho) * repetirCabecalho
-    tamanhoCabecalho += len(str(tamanhoCabecalho)*8) * repetirCabecalho
+    repetir_cabecalho = 10
+    tamanho_cabecalho = (len(stringC) * (repetir_cabecalho + 2))
+    tamanho_cabecalho += len(bits_cabecalho) * repetir_cabecalho
+    tamanho_cabecalho += len(str(tamanho_cabecalho)*8) * repetir_cabecalho
 
 
     stringT = ''
-    for i in str(tamanhoCabecalho):
+    for i in str(tamanho_cabecalho):
         b = format(ord(i),'b')
         b = '0' * ( 8 - len(b)) + b
         stringT += b
 
     cabecalho += stringC
-    for i in range(repetirCabecalho):
+    for i in range(repetir_cabecalho):
         cabecalho += stringC
-        cabecalho += bitsCabecalho
+        cabecalho += bits_cabecalho
         cabecalho += stringT
     cabecalho += stringC
 
     return cabecalho
 
-'''    Essa funcao recebe o nome do arquivo para codificar o nome do arquivo que sera o resultado da codificaçao'''
-def codificarArquivo(arquivo, novo_arquivo):
-    with open(novo_arquivo, 'w') as arq_codificado:
-        arq_codificado.write(criar_cabecalho(arquivo))
+def codificarArquivo(caminho_arquivo_original: str, caminho_arquivo_codificado='codificado.txt'):
+    """
+    Converte um arquivo qualquer em um arquivo de texto em binário e aplica codificação de Hamming. O arquivo de texto gerado é cerca de 12 vezes maior que o arquivo original
+    """
+    with open(caminho_arquivo_codificado, 'w') as arq_codificado:
+        arq_codificado.write(criar_cabecalho(caminho_arquivo_original))
         str_bits = ''
-        with open(arquivo, 'rb') as arq_normal:
+        with open(caminho_arquivo_original, 'rb') as arq_original:
             while True:
-                dado = arq_normal.read(1)
+                dado = arq_original.read(1)
                 if str(dado) == "b''":
                     break
                 byte = format(ord(dado), 'b')
@@ -115,9 +118,9 @@ def main():
     import time
     start_time = time.time()
 
-    codificarArquivo(arquivo='files\\image1.jpg', novo_arquivo='files\\encoded.txt')
+    codificarArquivo(caminho_arquivo_original='files\\image.jpg', caminho_arquivo_codificado='files\\codificado.txt')
 
-    print("--- Tempo de execução: %s segundos ---" % (time.time() - start_time))
+    print("--- Sender --> Tempo de execução: %s segundos ---" % (time.time() - start_time))
 
 
 if __name__ == "__main__":

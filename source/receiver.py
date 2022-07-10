@@ -12,11 +12,13 @@ def retornar_quadro_bit_flipado(quadro, posicao):
 
 def decodificar_quadro(quadro):
     """
-    Recebe um quadro de Hamming estendido (16 bits) e retorna, em string:
+    Recebe um quadro de Hamming estendido (16 bits) e retorna:
 
-    --> Os bits de dados se o algoritmo não detectar erro;\n
-    --> Vazio se o algoritmo detectar erro mas não determinar sua posição;\n
-    --> Os bits de dados já corrigidos se o algoritmo detectar erro e determinar sua posição.
+    * Os bits de dados em string e False se o algoritmo não detectar erro;\n
+    * String vazia e False se o algoritmo detectar erro mas não determinar sua posição;\n
+    * Os bits de dados em string já corrigidos e True se o algoritmo detectar erro e determinar sua posição.
+
+    - O segundo retorno é do tipo booleano e recebe True se o algoritmo efetuar a correção do quadro.
 
     LIMITAÇÃO: Se o algoritmo determinar a posição do erro e houver um número ímpar de erros diferente de 1, ele retornará os bits de dados corrigidos por uma suposta posição de erro. Desta forma, ele retorna os bits de dados corrigidos de uma maneira não acertiva!
     """
@@ -43,11 +45,11 @@ def decodificar_quadro(quadro):
 
     # Se não for detectado erro, retorna os bits de dados
     if   posicao_erro == 0 and quadro_eh_par:
-        return ''.join(bits_dados)
+        return ''.join(bits_dados), False
 
     # Se for detectado 2 ou mais erros, retorna string vazia
     elif (posicao_erro != 0 and quadro_eh_par) or (posicao_erro == 0 and not quadro_eh_par):
-        return ''
+        return '', False
 
     # Se for detectado 1 erro, flipa o bit incorreto e retorna os bits de dados
     else:
@@ -56,22 +58,20 @@ def decodificar_quadro(quadro):
         for i in posicoes_bits_dados:
             bit_dados.append(quadro_bit_flipado[i])
 
-        return ''.join(bit_dados)
+        return ''.join(bit_dados), True
 
-
-
-def lerCabecalho(t):
+def ler_cabecalho(t):
     chave = 'bcc2022'
     stringC = ''
     for i in chave:
         b = format(ord(i),'b')
         b = '0' * ( 8 - len(b)) + b
         stringC += b
-    cabecalhos = []    
+    cabecalhos = []
     f = ''
     data = ''
     on = False
-    for index,i in enumerate(t):
+    for index, i in enumerate(t):
         f += i
         if len(f) > len(stringC):
             f = f[1:]
@@ -100,71 +100,76 @@ def lerCabecalho(t):
                 certo = x
     return certo
 
+def decodificar_arquivo(caminho_arquivo_codificado: str, caminho_arquivo_recriado='original'):
+    """
+    Decodifica um arquivo especificado e recria o arquivo original (antes de ser codificado)
 
-'''     Essa função recebe o nome do arquivo para decodificar e retorna o nome do arquivo final que será recriado apos a codificaçao'''
-def decodificarArquivo(arquivo, novo_arquivo='original'):
-    inicioArquivo = 0
+    Se decodificar_quadro detectar um quadro corrompido, decodificar_arquivo adiciona 11 bits desligados na conversão para o arquivo original, ao invés dos dados de um quadro corrompido.
+    """
+    inicio_arquivo = 0
     cabecalho = ''
-    with open(arquivo,'r') as file:
-        while True:
-            cabecalho += file.read(1)
-            if len(cabecalho) > 3000:
-                break
+    with open(caminho_arquivo_codificado, 'r') as arq_codificado:
+        cabecalho = arq_codificado.read(3000)
 
-    dadosCabecalho = lerCabecalho(cabecalho).split('-')
-    extensao = dadosCabecalho[0]
-    tamanhoDoArquivo = int(dadosCabecalho[1])
-    inicioArquivo = int(dadosCabecalho[2])
+    dados_cabecalho = ler_cabecalho(cabecalho).split('-')
+    extensao = dados_cabecalho[0]
+    tamanho_arquivo = int(dados_cabecalho[1])
+    inicio_arquivo = int(dados_cabecalho[2])
 
-    contagem = 0
-    with open(arquivo,'r') as file:
-        while True:
-            dado = file.read(1)
-            if dado == '':
-                break
-            contagem += 1
-    if tamanhoDoArquivo != contagem-inicioArquivo:
-        print('foram adicionados ou retirados bits. Arquivo corrompido')   
-        return 
-
-    bytesArray = bytearray()
-    byte = ''
-    r = False
-    with open( novo_arquivo + '.' + extensao,'wb') as imagem:
-        string = ''
-        contador_quadros_corrompidos = 0
-        with open(arquivo,'r') as file:
+    with open(caminho_arquivo_recriado + '.' + extensao, 'wb') as arq_original:
+        with open(caminho_arquivo_codificado,'r') as arq_codificado:
+            contador_tamanho = 0
+            string_auxiliar = ''
+            dados = ''
+            efetuou_correcao = False
+            contador_quadros_verificados = 0
+            contador_quadros_corrigidos = 0
+            contador_quadros_corrompidos = 0
+            bytesArray = bytearray()
+            r = False
             while True:
-                dado = file.read(1)
-                if dado == '':
+                byte_dado = arq_codificado.read(8)
+                contador_tamanho += len(byte_dado)
+                if byte_dado == '':
                     break
-                string += dado
-                if len(string) == inicioArquivo and not r:
+                string_auxiliar += byte_dado
+                if len(string_auxiliar) == inicio_arquivo and not r:
                     r = True
-                    string = ''
+                    string_auxiliar = ''
                 if r:
-                    if len(string) == 16:
-                        novos_dados = decodificar_quadro(string)
-                        if novos_dados != '':
-                            byte += novos_dados
+                    if len(string_auxiliar) == 16:
+                        novos_dados, efetuou_correcao = decodificar_quadro(string_auxiliar)
+                        contador_quadros_verificados += 1
+                        if novos_dados != '' and not efetuou_correcao:
+                            dados += novos_dados
+                        elif novos_dados != '' and efetuou_correcao:
+                            contador_quadros_corrigidos += 1
+                            dados += novos_dados
                         else:
                             contador_quadros_corrompidos += 1
-                            byte += '00000000000'
-                        string = ''
-                    if len(byte) >= 8:
-                        bytesArray.append(int(byte[:8],2))
-                        byte = byte[8:]
-                    if len(bytesArray) >= 100:
-                        imagem.write(bytesArray)
+                            dados += '00000000000'
+                        string_auxiliar = ''
+                    if len(dados) >= 8:
+                        bytesArray.append(int(dados[:8], 2))
+                        dados = dados[8:]
+                    if len(bytesArray) >= 10000:
+                        arq_original.write(bytesArray)
                         bytesArray = bytearray()
 
-            if len(bytesArray) > 0:
-                imagem.write(bytesArray)
-            t = byte + string
-            if len(t) == 8:
-                bytesArray.append(int(byte[:8],2))
-                imagem.write(bytesArray)
+            dados_residuais = dados + string_auxiliar
+            bytesArray.append(int(dados_residuais[:8], 2))
+
+            arq_original.write(bytesArray)
+            # if len(t) == 8:
+            #     bytesArray.append(int('0b' + byte[:8], 2))
+            #     arq_original.write(bytesArray)
+    diferenca_tamanho = (contador_tamanho - inicio_arquivo) - tamanho_arquivo
+    if diferenca_tamanho != 0:
+        print('*Foi detectada uma diferença de', diferenca_tamanho, 'bits ao comparar o tamanho do arquivo codificado armazenado em seu cabeçalho e seu atual tamanho. O arquivo pode estar corrompido')
+
+    print("Quantidade de quadros verificados:", contador_quadros_verificados)
     print("Quantidade de quadros corrompidos:", contador_quadros_corrompidos)
+    print("Quantidade de quadros corrigidos:", contador_quadros_corrigidos)
 
 
 def main():
@@ -172,9 +177,11 @@ def main():
     import time
     start_time = time.time()
 
-    decodificarArquivo(arquivo='files\\encoded.txt', novo_arquivo='files\\original')
+    print()
 
-    print("--- Tempo de execução: %s segundos ---" % (time.time() - start_time))
+    decodificar_arquivo(caminho_arquivo_codificado='files\\codificado.txt', caminho_arquivo_recriado='files\\original')
+
+    print("--- Receiver --> Tempo de execução: %s segundos ---" % (time.time() - start_time))
 
 if __name__ == "__main__":
     main()
