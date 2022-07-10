@@ -1,6 +1,6 @@
 def criar_quadro(bits_dados):
     """
-    Recebe 11 bits de dados, calcula suas paridades e retorna uma lista que representa um quadro de Hamming estendido
+    Recebe 11 bits de dados, calcula suas paridades e retorna uma string que representa um quadro de Hamming estendido
     """
     result = list(range(16))
     soma_bit_hamm_estendido = 0
@@ -104,7 +104,6 @@ def codificarArquivo(caminho_arquivo_original: str, caminho_arquivo_codificado='
                 if str(dado) == "b''":
                     break
                 byte = format(ord(dado), 'b')
-                # byte = ('0' * ( 8 - len(byte))) + byte
                 byte = byte.zfill(8)
                 str_bits += byte
                 if len(str_bits) >= 11:
