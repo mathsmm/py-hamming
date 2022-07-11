@@ -203,13 +203,13 @@ def decodificar_quadro(quadro):
 
         return ''.join(bit_dados)
 
-list = [1, 1, 1, 1, 0, 1]
-str = '111101'
-print(bytearray(list))
-print(bytearray(str, 'utf-8'))
+# bytes_as_bits = ''
+# bytes = b'\xf0\x0f'
+# for byte in bytes:
+#     bytes_as_bits = ' '.join(format(byte, '08b'))
+#     print(type(format(byte, '08b')))
 
-with open('teste1.txt', 'wb') as arq:
-    arq.write(bytearray(list))
-
-with open('teste2.txt', 'wb') as arq:
-    arq.write(bytearray(str, 'utf-8'))
+i = '123456789'
+print(i[2:])
+print(i[::2])
+print(i[:2])

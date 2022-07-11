@@ -179,7 +179,7 @@ def main():
 
     print()
 
-    decodificar_arquivo(caminho_arquivo_codificado='files\\codificado.txt', caminho_arquivo_recriado='files\\original')
+    decodificar_arquivo(caminho_arquivo_codificado='files\\codificado.bin', caminho_arquivo_recriado='files\\original')
 
     print("--- Receiver --> Tempo de execução: %s segundos ---" % (time.time() - start_time))
 
