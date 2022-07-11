@@ -102,14 +102,19 @@ def ler_cabecalho(t):
 
 def decodificar_arquivo(caminho_arquivo_codificado: str, caminho_arquivo_recriado='original'):
     """
-    Decodifica um arquivo especificado e recria o arquivo original (antes de ser codificado)
+    Decodifica um arquivo especificado e recria o arquivo original (antes de ser codificado).
 
-    Se decodificar_quadro detectar um quadro corrompido, decodificar_arquivo adiciona 11 bits desligados na conversão para o arquivo original, ao invés dos dados de um quadro corrompido.
+    Se decodificar_quadro detectar um quadro corrompido, decodificar_arquivo adiciona 11 bits desligados na conversão para o arquivo original ao invés dos dados de um quadro corrompido.
     """
     inicio_arquivo = 0
     cabecalho = ''
-    with open(caminho_arquivo_codificado, 'r') as arq_codificado:
-        cabecalho = arq_codificado.read(3000)
+    with open(caminho_arquivo_codificado, 'rb') as arq_codificado:
+        i = 0
+        while i <= 2000:
+            dado = arq_codificado.read(1)
+            byte_formatado = format(ord(dado), '08b')
+            cabecalho += byte_formatado
+            i += 1
 
     dados_cabecalho = ler_cabecalho(cabecalho).split('-')
     extensao = dados_cabecalho[0]
@@ -117,9 +122,9 @@ def decodificar_arquivo(caminho_arquivo_codificado: str, caminho_arquivo_recriad
     inicio_arquivo = int(dados_cabecalho[2])
 
     with open(caminho_arquivo_recriado + '.' + extensao, 'wb') as arq_original:
-        with open(caminho_arquivo_codificado,'r') as arq_codificado:
+        with open(caminho_arquivo_codificado, 'rb') as arq_codificado:
             contador_tamanho = 0
-            string_auxiliar = ''
+            bytes_formatados = ''
             dados = ''
             efetuou_correcao = False
             contador_quadros_verificados = 0
@@ -128,17 +133,18 @@ def decodificar_arquivo(caminho_arquivo_codificado: str, caminho_arquivo_recriad
             bytesArray = bytearray()
             r = False
             while True:
-                byte_dado = arq_codificado.read(8)
-                contador_tamanho += len(byte_dado)
-                if byte_dado == '':
+                dado = arq_codificado.read(1)
+                contador_tamanho += len(dado)
+                if dado == b'':
                     break
-                string_auxiliar += byte_dado
-                if len(string_auxiliar) == inicio_arquivo and not r:
+                byte_formatado = format(ord(dado), '08b')
+                bytes_formatados += byte_formatado
+                if len(bytes_formatados) == inicio_arquivo and not r:
                     r = True
-                    string_auxiliar = ''
+                    bytes_formatados = ''
                 if r:
-                    if len(string_auxiliar) == 16:
-                        novos_dados, efetuou_correcao = decodificar_quadro(string_auxiliar)
+                    if len(bytes_formatados) == 16:
+                        novos_dados, efetuou_correcao = decodificar_quadro(bytes_formatados)
                         contador_quadros_verificados += 1
                         if novos_dados != '' and not efetuou_correcao:
                             dados += novos_dados
@@ -148,7 +154,7 @@ def decodificar_arquivo(caminho_arquivo_codificado: str, caminho_arquivo_recriad
                         else:
                             contador_quadros_corrompidos += 1
                             dados += '00000000000'
-                        string_auxiliar = ''
+                        bytes_formatados = ''
                     if len(dados) >= 8:
                         bytesArray.append(int(dados[:8], 2))
                         dados = dados[8:]
@@ -156,7 +162,7 @@ def decodificar_arquivo(caminho_arquivo_codificado: str, caminho_arquivo_recriad
                         arq_original.write(bytesArray)
                         bytesArray = bytearray()
 
-            dados_residuais = dados + string_auxiliar
+            dados_residuais = dados + bytes_formatados
             bytesArray.append(int(dados_residuais[:8], 2))
 
             arq_original.write(bytesArray)
@@ -182,6 +188,7 @@ def main():
     decodificar_arquivo(caminho_arquivo_codificado='files\\codificado.bin', caminho_arquivo_recriado='files\\original')
 
     print("--- Receiver --> Tempo de execução: %s segundos ---" % (time.time() - start_time))
+
 
 if __name__ == "__main__":
     main()

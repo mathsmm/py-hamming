@@ -125,7 +125,6 @@ def codificarArquivo(caminho_arquivo_original: str, caminho_arquivo_codificado='
             arq_codificado.write(int(cabecalho_cortado, base=2).to_bytes(1, byteorder='big'))
             i += 8
 
-        arq_codificado.write(str.encode(criar_cabecalho(caminho_arquivo_original)))
         bytes_formatados = ''
         with open(caminho_arquivo_original, 'rb') as arq_original:
             while True:
@@ -147,6 +146,8 @@ def main():
     # Marca o tempo de execução
     import time
     start_time = time.time()
+
+    print()
 
     codificarArquivo(caminho_arquivo_original='files\\image1.jpg', caminho_arquivo_codificado='files\\codificado.bin')
 
