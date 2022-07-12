@@ -23,7 +23,7 @@
 ## Hamming
  ![](img/quadro-hamming.png)
 
- Para mais informações, acesse a [página da Wikipedia](https://pt.wikipedia.org/wiki/C%C3%B3digo_de_Hamming) que descreve o Código de Hamming
+ Para mais informações, acesse a [página da Wikipedia](https://pt.wikipedia.org/wiki/C%C3%B3digo_de_Hamming) que descreve o Código de Hamming ou [este vídeo](https://youtu.be/X8jsijhllIA).
 
 ## Organização e funcionamento do código
 
