@@ -1,15 +1,4 @@
-# from xmlrpc.client import Boolean
-from emb import *
-
-# def salvarEmb(bits,file):
-#     bytesArray = bytearray()
-#     bits = desembaralhar(bits)
-#     quadro = ''
-#     for i in bits:
-#         quadro += i
-#         if len(quadro) == 8:
-#             bytesArray.append(int(dados[:8],2))
-#     file.write(bytesArray)
+from xmlrpc.client import Boolean
 
 
 def retornar_quadro_bit_flipado(quadro, posicao):
@@ -43,7 +32,6 @@ def decodificar_quadro(quadro):
 
     # Para o próximo laço, não é considerada a posição do primeiro bit do quadro
     for i in range(1, 16):
-        # Pula as posições de bits de paridade
         if i in posicoes_bits_dados:
             bits_dados.append(quadro[i])
 
@@ -58,11 +46,11 @@ def decodificar_quadro(quadro):
     # Se a soma de todos os bits ligados for par, quadro_eh_par recebe True. Caso contrário, quadro_eh_par recebe False
     quadro_eh_par = True if soma_primeiro_bit % 2 == 0 else False
 
-    # Se não for detectado erro (posicao_erro = 0), retorna os bits de dados
+    # Se não for detectado erro, retorna os bits de dados
     if   posicao_erro == 0 and quadro_eh_par:
         return ''.join(bits_dados), False
 
-    # Se for detectado 2 erros, retorna string vazia. Acima de 2, pode não funcionar, pois pode haver um quadro falso positivo com posicao_erro = 0
+    # Se for detectado 2 ou mais erros, retorna string vazia
     elif (posicao_erro != 0 and quadro_eh_par) or (posicao_erro == 0 and not quadro_eh_par):
         return '', False
 
@@ -115,7 +103,7 @@ def ler_cabecalho(t):
                 certo = x
     return certo
 
-def decodificar_arquivo(caminho_arquivo_codificado: str, caminho_arquivo_recriado='coded-converted-files\\original'):
+def decodificar_arquivo(caminho_arquivo_codificado: str, caminho_arquivo_recriado='original'):
     """
     Decodifica um arquivo especificado e recria o arquivo original (antes de ser codificado).
 
@@ -148,9 +136,10 @@ def decodificar_arquivo(caminho_arquivo_codificado: str, caminho_arquivo_recriad
             contador_quadros_corrompidos = 0
             bytesArray = bytearray()
             escrever = False
-            quadros = ''
             while True:
                 dado = arq_codificado.read(1)
+                # if str(dado) == "b''":
+                #     break
                 contador_tamanho += 8
                 if tamanho_arquivo <= (contador_tamanho - inicio_arquivo):
                     break
@@ -161,44 +150,7 @@ def decodificar_arquivo(caminho_arquivo_codificado: str, caminho_arquivo_recriad
                     bytes_formatados = ''
                 if escrever:
                     if len(bytes_formatados) == 16:
-                        quadros += bytes_formatados
-                        bytes_formatados = ''
-
-                    # Se a quantidade de quadros for 100:
-                    if len(quadros) == 1600:
-                        quadros = desembaralhar(quadros)
-                        quadro = ''
-                        for n in quadros:
-                            quadro += n
-                            if len(quadro) == 16:
-                                novos_dados, efetuou_correcao = decodificar_quadro(quadro)
-                                contador_quadros_verificados += 1
-                                if novos_dados != '' and not efetuou_correcao:
-                                    dados += novos_dados
-                                elif novos_dados != '' and efetuou_correcao:
-                                    contador_quadros_corrigidos += 1
-                                    dados += novos_dados
-                                else:
-                                    contador_quadros_corrompidos += 1
-                                    dados += '00000000000'
-                                quadro = ''
-                                bytes_formatados = ''
-                            if len(dados) >= 8:
-                                bytesArray.append(int(dados[:8], 2))
-                                dados = dados[8:]
-                            if len(bytesArray) >= 16:
-                                arq_original.write(bytesArray)
-                                bytesArray = bytearray()
-                        quadros = ''
-
-            # Se a quantidade de quadros for diferente de 0:
-            if quadros != '':
-                quadros = desembaralhar(quadros)
-                quadro = ''
-                for n in quadros:
-                    quadro += n
-                    if len(quadro) == 16:
-                        novos_dados, efetuou_correcao = decodificar_quadro(quadro)
+                        novos_dados, efetuou_correcao = decodificar_quadro(bytes_formatados)
                         contador_quadros_verificados += 1
                         if novos_dados != '' and not efetuou_correcao:
                             dados += novos_dados
@@ -209,21 +161,16 @@ def decodificar_arquivo(caminho_arquivo_codificado: str, caminho_arquivo_recriad
                             contador_quadros_corrompidos += 1
                             dados += '00000000000'
                         bytes_formatados = ''
-                        quadro = ''
                     if len(dados) >= 8:
                         bytesArray.append(int(dados[:8], 2))
                         dados = dados[8:]
                     if len(bytesArray) >= 16:
                         arq_original.write(bytesArray)
                         bytesArray = bytearray()
-                quadros = ''
-
             if len(dados) != 8:
                 contador_tamanho -= len(dados)
 
-            if len(bytes_formatados+dados) != 0:
-                bytesArray.append(int(bytes_formatados+dados, 2))
-            # bytesArray.append(int(bytes_formatados+dados, base=2).to_bytes(2, byteorder='big'))
+            bytesArray.append(int(dados[:8], 2))
 
             arq_original.write(bytesArray)
 

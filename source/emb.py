@@ -1,6 +1,7 @@
 import random
 
 
+# Intercalar
 def embaralhar(bits):
     resultado = ''
     qtd_quadros = len(bits) // 16
@@ -11,6 +12,7 @@ def embaralhar(bits):
 
     return resultado
 
+# Desintercalar
 def desembaralhar(bits):
     resultado = ''
     qtd_quadros = len(bits) // 16
@@ -21,16 +23,22 @@ def desembaralhar(bits):
 
     return resultado
 
+'''
 original = ''
-for caractere in range(144):
+for caractere in range(1600):
     original += random.choice(['1','0'])
-print('original:',original)
+print()
+print('original:', original)
+print()
 
 emb = embaralhar(original)
 print('emberare:',emb)
 desemb = desembaralhar(emb)
+print()
 print('desembed:',desemb)
 if original == desemb:
     print('ok')
 else:
     print('erro')
+
+'''
