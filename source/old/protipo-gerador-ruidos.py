@@ -1,14 +1,13 @@
 import random
 
+
 def criarArquivo():
     arquivo = ''
     for i in range(300):
         arquivo += random.choice(['0','1'])
-    with open('arquivo.txt','w') as file:
+    with open('arquivo.txt', 'wb') as file:
         file.write(arquivo)
 
-#criarArquivo()
-            
 def adicionar_bit(quantidade_de_bits_adicionados):
     with open('arquivo.txt', 'r') as arquivo:
         file = arquivo.read()

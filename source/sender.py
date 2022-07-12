@@ -3,7 +3,7 @@ def criar_quadro(bits_dados):
     Recebe 11 bits de dados, calcula suas paridades e retorna uma string que representa um quadro de Hamming estendido
     """
     result = list(range(16))
-    soma_bit_hamm_estendido = 0
+    soma_primeiro_bit = 0
     i = 0
     xor_aplicado = 0
     # As posições j consideradas no laço são as posições dos bits de dados num quadro de Hamming já montado
@@ -16,7 +16,7 @@ def criar_quadro(bits_dados):
             # Aplica-se XOR considerando sua posição num quadro já montado.
         # Ao final do laço, xor_aplicado terá exatamente os bits de paridade de Hamming que devem estar ligados, porém em base decimal
         if int(bits_dados[i]):
-            soma_bit_hamm_estendido += 1
+            soma_primeiro_bit += 1
             xor_aplicado = xor_aplicado ^ j
 
         # Incrementa i para acessar a próxima posição do parâmetro bit_dados
@@ -27,27 +27,30 @@ def criar_quadro(bits_dados):
 
     i = 3
     # Cada k representa um bit de paridade de Hamming na posição 2 ** i
+    """  1001  """
     for k in str_xor_aplicado:
         result[2**i] = k
-        soma_bit_hamm_estendido += int(k)
+        soma_primeiro_bit += int(k)
         i -= 1
 
     # O bit da posição 0 (Hamming estendido) recebe sua devida paridade considerando-se todos os bits ligados até então
-    result[0] = str(soma_bit_hamm_estendido % 2)
+    result[0] = str(soma_primeiro_bit % 2)
 
     return ''.join(result)
+
+import os
 
 def criar_cabecalho(arquivo):
     cabecalho = ''
     extensao = arquivo.split('.')[1]
 
-    t = 0
-    with open(arquivo, 'rb') as file:
-        while True:
-            dado = file.read(1)
-            if str(dado) == "b''":
-                break
-            t += 1
+    t = os.path.getsize(f"{arquivo}")
+    # with open(arquivo, 'rb') as file:
+    #     while True:
+    #         dado = file.read(1)
+    #         if str(dado) == "b''":
+    #             break
+    #         t += 1
 
     t *= 8
     resto = t % 11
@@ -140,6 +143,7 @@ def codificarArquivo(caminho_arquivo_original: str, caminho_arquivo_codificado='
                     bytes_formatados = bytes_formatados[11:]
 
             arq_codificado.write(int(bytes_formatados, base=2).to_bytes(2, byteorder='big'))
+            # arq_codificado.write(bytes_formatados)
 
 
 def main():
@@ -149,7 +153,7 @@ def main():
 
     print()
 
-    codificarArquivo(caminho_arquivo_original='files\\image1.jpg', caminho_arquivo_codificado='files\\codificado.bin')
+    codificarArquivo(caminho_arquivo_original='files\\image3.jpg', caminho_arquivo_codificado='files\\codificado.bin')
 
     print("--- Sender --> Tempo de execução: %s segundos ---" % (time.time() - start_time))
 

@@ -1,3 +1,6 @@
+from xmlrpc.client import Boolean
+
+
 def retornar_quadro_bit_flipado(quadro, posicao):
     """
     Recebe um quadro de Hamming estendido e retorna uma lista igual ao quadro, porém com o bit na posição especificada flipado
@@ -110,7 +113,7 @@ def decodificar_arquivo(caminho_arquivo_codificado: str, caminho_arquivo_recriad
     cabecalho = ''
     with open(caminho_arquivo_codificado, 'rb') as arq_codificado:
         i = 0
-        while i <= 2000:
+        while i <= 375:
             dado = arq_codificado.read(1)
             byte_formatado = format(ord(dado), '08b')
             cabecalho += byte_formatado
@@ -124,6 +127,7 @@ def decodificar_arquivo(caminho_arquivo_codificado: str, caminho_arquivo_recriad
     with open(caminho_arquivo_recriado + '.' + extensao, 'wb') as arq_original:
         with open(caminho_arquivo_codificado, 'rb') as arq_codificado:
             contador_tamanho = 0
+            byte_formatado = ''
             bytes_formatados = ''
             dados = ''
             efetuou_correcao = False
@@ -131,18 +135,20 @@ def decodificar_arquivo(caminho_arquivo_codificado: str, caminho_arquivo_recriad
             contador_quadros_corrigidos = 0
             contador_quadros_corrompidos = 0
             bytesArray = bytearray()
-            r = False
+            escrever = False
             while True:
                 dado = arq_codificado.read(1)
-                contador_tamanho += len(dado)
-                if dado == b'':
+                # if str(dado) == "b''":
+                #     break
+                contador_tamanho += 8
+                if tamanho_arquivo <= (contador_tamanho - inicio_arquivo):
                     break
                 byte_formatado = format(ord(dado), '08b')
                 bytes_formatados += byte_formatado
-                if len(bytes_formatados) == inicio_arquivo and not r:
-                    r = True
+                if len(bytes_formatados) == inicio_arquivo and not escrever:
+                    escrever = True
                     bytes_formatados = ''
-                if r:
+                if escrever:
                     if len(bytes_formatados) == 16:
                         novos_dados, efetuou_correcao = decodificar_quadro(bytes_formatados)
                         contador_quadros_verificados += 1
@@ -158,17 +164,16 @@ def decodificar_arquivo(caminho_arquivo_codificado: str, caminho_arquivo_recriad
                     if len(dados) >= 8:
                         bytesArray.append(int(dados[:8], 2))
                         dados = dados[8:]
-                    if len(bytesArray) >= 10000:
+                    if len(bytesArray) >= 16:
                         arq_original.write(bytesArray)
                         bytesArray = bytearray()
+            if len(dados) != 8:
+                contador_tamanho -= len(dados)
 
-            dados_residuais = dados + bytes_formatados
-            bytesArray.append(int(dados_residuais[:8], 2))
+            bytesArray.append(int(dados[:8], 2))
 
             arq_original.write(bytesArray)
-            # if len(t) == 8:
-            #     bytesArray.append(int('0b' + byte[:8], 2))
-            #     arq_original.write(bytesArray)
+
     diferenca_tamanho = (contador_tamanho - inicio_arquivo) - tamanho_arquivo
     if diferenca_tamanho != 0:
         print('*Foi detectada uma diferença de', diferenca_tamanho, 'bits ao comparar o tamanho do arquivo codificado armazenado em seu cabeçalho e seu atual tamanho. O arquivo pode estar corrompido')

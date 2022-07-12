@@ -209,7 +209,6 @@ def decodificar_quadro(quadro):
 #     bytes_as_bits = ' '.join(format(byte, '08b'))
 #     print(type(format(byte, '08b')))
 
-i = '123456789'
-print(i[2:])
-print(i[::2])
-print(i[:2])
+a = b'\xd9'
+b = format(ord(a), '08b')
+print(b)
