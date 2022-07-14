@@ -1,6 +1,6 @@
 # Algoritmo de atribuição de resistência a erros
 
-## Sumário
+### Sumário
  - [Resumo](#resumo)
  - [Hamming](#hamming)
  - [Organização do código](#organização-e-funcionamento-do-código)
