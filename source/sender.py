@@ -36,7 +36,6 @@ def criar_quadro(bits_dados):
 
     i = 3
     # Cada k representa um bit de paridade de Hamming na posição 2 ** i
-    """ 1001  """
     for k in str_xor_aplicado:
         result[2**i] = k
         soma_primeiro_bit += int(k)
