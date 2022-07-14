@@ -9,6 +9,7 @@
      - [Criar-quadro](#função-para-criar-um-quadro-de-hamming)
      - [Criar-cabeçalho](#função-para-criar-o-cabeçalho)
      - [Criar-arquivo-codificado](#procedimento-para-criar-o-arquivo-codificado)
+   - [Intercalamento](#intercalamento)
    - [Receiver](#receiver)
      - [Flipar-bit](#função-para-flipar-um-bit)
      - [Decodificar-quadro](#função-para-decodificar-um-quadro)
@@ -37,13 +38,18 @@
 
  #### Função para criar um quadro de Hamming:
  ```python
- def criar_quadro(bits_dados):
+def criar_quadro(bits_dados):
     """
     Recebe 11 bits de dados, calcula suas paridades e retorna uma string que representa um quadro de Hamming estendido
     """
     result = list(range(16))
+    # Variável p/ calcular a paridade do primeiro bit
     soma_primeiro_bit = 0
+
+    # i percorrerá as posições de bits_dados
     i = 0
+
+    # A próxima variável posteriormente vai armazenar as posições dos bits de paridade que deverão estar ligados
     xor_aplicado = 0
     # As posições j consideradas no laço são as posições dos bits de dados num quadro de Hamming já montado
     for j in [3, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15]:
@@ -54,6 +60,7 @@
             # Soma o bit de dado i para posteriormente verificar a paridade do bit da posição 0 do quadro de Hamming estendido;
             # Aplica-se XOR considerando sua posição num quadro já montado.
         # Ao final do laço, xor_aplicado terá exatamente os bits de paridade de Hamming que devem estar ligados, porém em base decimal
+
         if int(bits_dados[i]):
             soma_primeiro_bit += 1
             xor_aplicado = xor_aplicado ^ j
@@ -62,6 +69,7 @@
         i += 1
 
     # Passa a variável xor_aplicado para binário, fatia a partir da posição 2 e adiciona zeros à esquerda para completar uma string de tamanho 4
+    # (4-len(string1)) * '0' + bin(xor_aplicado)[2:]
     str_xor_aplicado = bin(xor_aplicado)[2:].zfill(4)
 
     i = 3
@@ -81,7 +89,9 @@
 
  #### Função para criar o cabeçalho:
  ```python
- def criar_cabecalho(arquivo):
+ import os
+
+def criar_cabecalho(arquivo):
     cabecalho = ''
     extensao = arquivo.split('.')[1]
 
@@ -138,7 +148,7 @@
 
  #### Procedimento para criar o arquivo codificado:
  ```python
- def codificarArquivo(caminho_arquivo_original: str, caminho_arquivo_codificado='codificado.bin'):
+def codificarArquivo(caminho_arquivo_original: str, caminho_arquivo_codificado='codificado.bin'):
     """
     Converte um arquivo qualquer em um arquivo binário e aplica codificação de Hamming.
     """
@@ -153,20 +163,65 @@
             i += 8
 
         bytes_formatados = ''
+        quadros = ''
         with open(caminho_arquivo_original, 'rb') as arq_original:
             while True:
                 dado = arq_original.read(1)
                 if str(dado) == "b''":
                     break
                 byte_formatado = format(ord(dado), '08b')
-                # byte = byte.zfill(8)
                 bytes_formatados += byte_formatado
                 if len(bytes_formatados) >= 11:
-                    quadro = criar_quadro(bytes_formatados[:11])
-                    arq_codificado.write(int(quadro, base=2).to_bytes(2, byteorder='big'))
+                    quadros += criar_quadro(bytes_formatados[:11])
                     bytes_formatados = bytes_formatados[11:]
+                if len(quadros) == 1600:
+                    quadros = embaralhar(quadros)
+                    quadro = ''
+                    for i in quadros:
+                        quadro += i
+                        if len(quadro) == 16:
+                            arq_codificado.write(int(quadro, base=2).to_bytes(2, byteorder='big'))
+                            quadro = ''
+                    quadros = ''
 
-            arq_codificado.write(int(bytes_formatados, base=2).to_bytes(2, byteorder='big'))
+            if quadros != '':
+                quadros = embaralhar(quadros)
+                quadro = ''
+                for i in quadros:
+                    quadro += i
+                    if len(quadro) == 16:
+                        arq_codificado.write(int(quadro, base=2).to_bytes(2, byteorder='big'))
+                        quadro = ''
+
+            if bytes_formatados != '':
+                arq_codificado.write(int(bytes_formatados, base=2).to_bytes(2, byteorder='big'))
+ ```
+
+ ### Intercalamento
+ Para o arquivo codificado ficar resistente a ruídos em rajada, seus quadros são intercalados. <br>
+ Funções:
+ ```python
+ # Intercalar
+def embaralhar(bits):
+    resultado = ''
+    qtd_quadros = len(bits) // 16
+
+    for x in range(16):
+        for y in range(qtd_quadros):
+            resultado += bits[(y*16)+x]
+
+    return resultado
+
+# Desintercalar
+def desembaralhar(bits):
+    resultado = ''
+    qtd_quadros = len(bits) // 16
+
+    for x in range(qtd_quadros):
+        for y in range(16):
+            resultado += bits[(y * qtd_quadros)+x]
+
+    return resultado
  ```
 
  ### Receiver
@@ -216,6 +271,7 @@ def decodificar_quadro(quadro):
 
     # Para o próximo laço, não é considerada a posição do primeiro bit do quadro
     for i in range(1, 16):
+        # Pula as posições de bits de paridade
         if i in posicoes_bits_dados:
             bits_dados.append(quadro[i])
 
@@ -230,11 +286,11 @@ def decodificar_quadro(quadro):
     # Se a soma de todos os bits ligados for par, quadro_eh_par recebe True. Caso contrário, quadro_eh_par recebe False
     quadro_eh_par = True if soma_primeiro_bit % 2 == 0 else False
 
-    # Se não for detectado erro, retorna os bits de dados
+    # Se não for detectado erro (posicao_erro = 0), retorna os bits de dados
     if   posicao_erro == 0 and quadro_eh_par:
         return ''.join(bits_dados), False
 
-    # Se for detectado 2 ou mais erros, retorna string vazia
+    # Se for detectado 2 erros, retorna string vazia. Acima de 2, pode não funcionar, pois pode haver um quadro falso positivo com posicao_erro = 0
     elif (posicao_erro != 0 and quadro_eh_par) or (posicao_erro == 0 and not quadro_eh_par):
         return '', False
 
@@ -293,7 +349,7 @@ def ler_cabecalho(t):
 
  #### Procedimento para decodificar um arquivo e retorná-lo ao arquivo original:
 ```python
-def decodificar_arquivo(caminho_arquivo_codificado: str, caminho_arquivo_recriado='original'):
+def decodificar_arquivo(caminho_arquivo_codificado: str, caminho_arquivo_recriado='coded-converted-files\\original'):
     """
     Decodifica um arquivo especificado e recria o arquivo original (antes de ser codificado).
 
@@ -326,10 +382,9 @@ def decodificar_arquivo(caminho_arquivo_codificado: str, caminho_arquivo_recriad
             contador_quadros_corrompidos = 0
             bytesArray = bytearray()
             escrever = False
+            quadros = ''
             while True:
                 dado = arq_codificado.read(1)
-                # if str(dado) == "b''":
-                #     break
                 contador_tamanho += 8
                 if tamanho_arquivo <= (contador_tamanho - inicio_arquivo):
                     break
@@ -340,7 +395,44 @@ def decodificar_arquivo(caminho_arquivo_codificado: str, caminho_arquivo_recriad
                     bytes_formatados = ''
                 if escrever:
                     if len(bytes_formatados) == 16:
-                        novos_dados, efetuou_correcao = decodificar_quadro(bytes_formatados)
+                        quadros += bytes_formatados
+                        bytes_formatados = ''
+
+                    # Se a quantidade de quadros for 100:
+                    if len(quadros) == 1600:
+                        quadros = desembaralhar(quadros)
+                        quadro = ''
+                        for n in quadros:
+                            quadro += n
+                            if len(quadro) == 16:
+                                novos_dados, efetuou_correcao = decodificar_quadro(quadro)
+                                contador_quadros_verificados += 1
+                                if novos_dados != '' and not efetuou_correcao:
+                                    dados += novos_dados
+                                elif novos_dados != '' and efetuou_correcao:
+                                    contador_quadros_corrigidos += 1
+                                    dados += novos_dados
+                                else:
+                                    contador_quadros_corrompidos += 1
+                                    dados += '00000000000'
+                                quadro = ''
+                                bytes_formatados = ''
+                            if len(dados) >= 8:
+                                bytesArray.append(int(dados[:8], 2))
+                                dados = dados[8:]
+                            if len(bytesArray) >= 16:
+                                arq_original.write(bytesArray)
+                                bytesArray = bytearray()
+                        quadros = ''
+
+            # Se a quantidade de quadros for diferente de 0:
+            if quadros != '':
+                quadros = desembaralhar(quadros)
+                quadro = ''
+                for n in quadros:
+                    quadro += n
+                    if len(quadro) == 16:
+                        novos_dados, efetuou_correcao = decodificar_quadro(quadro)
                         contador_quadros_verificados += 1
                         if novos_dados != '' and not efetuou_correcao:
                             dados += novos_dados
@@ -351,16 +443,21 @@ def decodificar_arquivo(caminho_arquivo_codificado: str, caminho_arquivo_recriad
                             contador_quadros_corrompidos += 1
                             dados += '00000000000'
                         bytes_formatados = ''
+                        quadro = ''
                     if len(dados) >= 8:
                         bytesArray.append(int(dados[:8], 2))
                         dados = dados[8:]
                     if len(bytesArray) >= 16:
                         arq_original.write(bytesArray)
                         bytesArray = bytearray()
+                quadros = ''
+
             if len(dados) != 8:
                 contador_tamanho -= len(dados)
 
-            bytesArray.append(int(dados[:8], 2))
+            if len(bytes_formatados+dados) != 0:
+                bytesArray.append(int(bytes_formatados+dados, 2))
+            # bytesArray.append(int(bytes_formatados+dados, base=2).to_bytes(2, byteorder='big'))
 
             arq_original.write(bytesArray)
 
